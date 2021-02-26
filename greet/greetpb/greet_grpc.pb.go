@@ -14,43 +14,28 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// GreetServiceClient is the client API for GreetService service.
+// CalculatorServiceClient is the client API for CalculatorService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GreetServiceClient interface {
-	//Unary
-	Greet(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (*GreetResponse, error)
-	//Server streaming rpc
-	GreetManyTimes(ctx context.Context, in *GreetManyTimesRequest, opts ...grpc.CallOption) (GreetService_GreetManyTimesClient, error)
-	//Client streaming rpc
-	LongGreet(ctx context.Context, opts ...grpc.CallOption) (GreetService_LongGreetClient, error)
-	// Bidirectional streaming
-	GreetEveryone(ctx context.Context, opts ...grpc.CallOption) (GreetService_GreetEveryoneClient, error)
+type CalculatorServiceClient interface {
+	Prime(ctx context.Context, in *PrimeRequest, opts ...grpc.CallOption) (CalculatorService_PrimeClient, error)
+	Avg(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_AvgClient, error)
 }
 
-type greetServiceClient struct {
+type calculatorServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGreetServiceClient(cc grpc.ClientConnInterface) GreetServiceClient {
-	return &greetServiceClient{cc}
+func NewCalculatorServiceClient(cc grpc.ClientConnInterface) CalculatorServiceClient {
+	return &calculatorServiceClient{cc}
 }
 
-func (c *greetServiceClient) Greet(ctx context.Context, in *GreetRequest, opts ...grpc.CallOption) (*GreetResponse, error) {
-	out := new(GreetResponse)
-	err := c.cc.Invoke(ctx, "/greet.GreetService/Greet", in, out, opts...)
+func (c *calculatorServiceClient) Prime(ctx context.Context, in *PrimeRequest, opts ...grpc.CallOption) (CalculatorService_PrimeClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CalculatorService_ServiceDesc.Streams[0], "/greetpb.CalculatorService/Prime", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
-}
-
-func (c *greetServiceClient) GreetManyTimes(ctx context.Context, in *GreetManyTimesRequest, opts ...grpc.CallOption) (GreetService_GreetManyTimesClient, error) {
-	stream, err := c.cc.NewStream(ctx, &GreetService_ServiceDesc.Streams[0], "/greet.GreetService/GreetManyTimes", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &greetServiceGreetManyTimesClient{stream}
+	x := &calculatorServicePrimeClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -60,250 +45,152 @@ func (c *greetServiceClient) GreetManyTimes(ctx context.Context, in *GreetManyTi
 	return x, nil
 }
 
-type GreetService_GreetManyTimesClient interface {
-	Recv() (*GreetManyTimesResponse, error)
+type CalculatorService_PrimeClient interface {
+	Recv() (*PrimeResponse, error)
 	grpc.ClientStream
 }
 
-type greetServiceGreetManyTimesClient struct {
+type calculatorServicePrimeClient struct {
 	grpc.ClientStream
 }
 
-func (x *greetServiceGreetManyTimesClient) Recv() (*GreetManyTimesResponse, error) {
-	m := new(GreetManyTimesResponse)
+func (x *calculatorServicePrimeClient) Recv() (*PrimeResponse, error) {
+	m := new(PrimeResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *greetServiceClient) LongGreet(ctx context.Context, opts ...grpc.CallOption) (GreetService_LongGreetClient, error) {
-	stream, err := c.cc.NewStream(ctx, &GreetService_ServiceDesc.Streams[1], "/greet.GreetService/LongGreet", opts...)
+func (c *calculatorServiceClient) Avg(ctx context.Context, opts ...grpc.CallOption) (CalculatorService_AvgClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CalculatorService_ServiceDesc.Streams[1], "/greetpb.CalculatorService/Avg", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &greetServiceLongGreetClient{stream}
+	x := &calculatorServiceAvgClient{stream}
 	return x, nil
 }
 
-type GreetService_LongGreetClient interface {
-	Send(*LongGreetRequest) error
-	CloseAndRecv() (*LongGreetResponse, error)
+type CalculatorService_AvgClient interface {
+	Send(*AvgRequest) error
+	CloseAndRecv() (*AvgResponse, error)
 	grpc.ClientStream
 }
 
-type greetServiceLongGreetClient struct {
+type calculatorServiceAvgClient struct {
 	grpc.ClientStream
 }
 
-func (x *greetServiceLongGreetClient) Send(m *LongGreetRequest) error {
+func (x *calculatorServiceAvgClient) Send(m *AvgRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *greetServiceLongGreetClient) CloseAndRecv() (*LongGreetResponse, error) {
+func (x *calculatorServiceAvgClient) CloseAndRecv() (*AvgResponse, error) {
 	if err := x.ClientStream.CloseSend(); err != nil {
 		return nil, err
 	}
-	m := new(LongGreetResponse)
+	m := new(AvgResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func (c *greetServiceClient) GreetEveryone(ctx context.Context, opts ...grpc.CallOption) (GreetService_GreetEveryoneClient, error) {
-	stream, err := c.cc.NewStream(ctx, &GreetService_ServiceDesc.Streams[2], "/greet.GreetService/GreetEveryone", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &greetServiceGreetEveryoneClient{stream}
-	return x, nil
-}
-
-type GreetService_GreetEveryoneClient interface {
-	Send(*GreetEveryoneRequest) error
-	Recv() (*GreetEveryoneResponse, error)
-	grpc.ClientStream
-}
-
-type greetServiceGreetEveryoneClient struct {
-	grpc.ClientStream
-}
-
-func (x *greetServiceGreetEveryoneClient) Send(m *GreetEveryoneRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *greetServiceGreetEveryoneClient) Recv() (*GreetEveryoneResponse, error) {
-	m := new(GreetEveryoneResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// GreetServiceServer is the server API for GreetService service.
-// All implementations must embed UnimplementedGreetServiceServer
+// CalculatorServiceServer is the server API for CalculatorService service.
+// All implementations must embed UnimplementedCalculatorServiceServer
 // for forward compatibility
-type GreetServiceServer interface {
-	//Unary
-	Greet(context.Context, *GreetRequest) (*GreetResponse, error)
-	//Server streaming rpc
-	GreetManyTimes(*GreetManyTimesRequest, GreetService_GreetManyTimesServer) error
-	//Client streaming rpc
-	LongGreet(GreetService_LongGreetServer) error
-	// Bidirectional streaming
-	GreetEveryone(GreetService_GreetEveryoneServer) error
-	mustEmbedUnimplementedGreetServiceServer()
+type CalculatorServiceServer interface {
+	Prime(*PrimeRequest, CalculatorService_PrimeServer) error
+	Avg(CalculatorService_AvgServer) error
+	mustEmbedUnimplementedCalculatorServiceServer()
 }
 
-// UnimplementedGreetServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedGreetServiceServer struct {
+// UnimplementedCalculatorServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedCalculatorServiceServer struct {
 }
 
-func (UnimplementedGreetServiceServer) Greet(context.Context, *GreetRequest) (*GreetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Greet not implemented")
+func (UnimplementedCalculatorServiceServer) Prime(*PrimeRequest, CalculatorService_PrimeServer) error {
+	return status.Errorf(codes.Unimplemented, "method Prime not implemented")
 }
-func (UnimplementedGreetServiceServer) GreetManyTimes(*GreetManyTimesRequest, GreetService_GreetManyTimesServer) error {
-	return status.Errorf(codes.Unimplemented, "method GreetManyTimes not implemented")
+func (UnimplementedCalculatorServiceServer) Avg(CalculatorService_AvgServer) error {
+	return status.Errorf(codes.Unimplemented, "method Avg not implemented")
 }
-func (UnimplementedGreetServiceServer) LongGreet(GreetService_LongGreetServer) error {
-	return status.Errorf(codes.Unimplemented, "method LongGreet not implemented")
-}
-func (UnimplementedGreetServiceServer) GreetEveryone(GreetService_GreetEveryoneServer) error {
-	return status.Errorf(codes.Unimplemented, "method GreetEveryone not implemented")
-}
-func (UnimplementedGreetServiceServer) mustEmbedUnimplementedGreetServiceServer() {}
+func (UnimplementedCalculatorServiceServer) mustEmbedUnimplementedCalculatorServiceServer() {}
 
-// UnsafeGreetServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GreetServiceServer will
+// UnsafeCalculatorServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CalculatorServiceServer will
 // result in compilation errors.
-type UnsafeGreetServiceServer interface {
-	mustEmbedUnimplementedGreetServiceServer()
+type UnsafeCalculatorServiceServer interface {
+	mustEmbedUnimplementedCalculatorServiceServer()
 }
 
-func RegisterGreetServiceServer(s grpc.ServiceRegistrar, srv GreetServiceServer) {
-	s.RegisterService(&GreetService_ServiceDesc, srv)
+func RegisterCalculatorServiceServer(s grpc.ServiceRegistrar, srv CalculatorServiceServer) {
+	s.RegisterService(&CalculatorService_ServiceDesc, srv)
 }
 
-func _GreetService_Greet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GreetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GreetServiceServer).Greet(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/greet.GreetService/Greet",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreetServiceServer).Greet(ctx, req.(*GreetRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GreetService_GreetManyTimes_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(GreetManyTimesRequest)
+func _CalculatorService_Prime_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(PrimeRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(GreetServiceServer).GreetManyTimes(m, &greetServiceGreetManyTimesServer{stream})
+	return srv.(CalculatorServiceServer).Prime(m, &calculatorServicePrimeServer{stream})
 }
 
-type GreetService_GreetManyTimesServer interface {
-	Send(*GreetManyTimesResponse) error
+type CalculatorService_PrimeServer interface {
+	Send(*PrimeResponse) error
 	grpc.ServerStream
 }
 
-type greetServiceGreetManyTimesServer struct {
+type calculatorServicePrimeServer struct {
 	grpc.ServerStream
 }
 
-func (x *greetServiceGreetManyTimesServer) Send(m *GreetManyTimesResponse) error {
+func (x *calculatorServicePrimeServer) Send(m *PrimeResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _GreetService_LongGreet_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(GreetServiceServer).LongGreet(&greetServiceLongGreetServer{stream})
+func _CalculatorService_Avg_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(CalculatorServiceServer).Avg(&calculatorServiceAvgServer{stream})
 }
 
-type GreetService_LongGreetServer interface {
-	SendAndClose(*LongGreetResponse) error
-	Recv() (*LongGreetRequest, error)
+type CalculatorService_AvgServer interface {
+	SendAndClose(*AvgResponse) error
+	Recv() (*AvgRequest, error)
 	grpc.ServerStream
 }
 
-type greetServiceLongGreetServer struct {
+type calculatorServiceAvgServer struct {
 	grpc.ServerStream
 }
 
-func (x *greetServiceLongGreetServer) SendAndClose(m *LongGreetResponse) error {
+func (x *calculatorServiceAvgServer) SendAndClose(m *AvgResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *greetServiceLongGreetServer) Recv() (*LongGreetRequest, error) {
-	m := new(LongGreetRequest)
+func (x *calculatorServiceAvgServer) Recv() (*AvgRequest, error) {
+	m := new(AvgRequest)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-func _GreetService_GreetEveryone_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(GreetServiceServer).GreetEveryone(&greetServiceGreetEveryoneServer{stream})
-}
-
-type GreetService_GreetEveryoneServer interface {
-	Send(*GreetEveryoneResponse) error
-	Recv() (*GreetEveryoneRequest, error)
-	grpc.ServerStream
-}
-
-type greetServiceGreetEveryoneServer struct {
-	grpc.ServerStream
-}
-
-func (x *greetServiceGreetEveryoneServer) Send(m *GreetEveryoneResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *greetServiceGreetEveryoneServer) Recv() (*GreetEveryoneRequest, error) {
-	m := new(GreetEveryoneRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-// GreetService_ServiceDesc is the grpc.ServiceDesc for GreetService service.
+// CalculatorService_ServiceDesc is the grpc.ServiceDesc for CalculatorService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var GreetService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "greet.GreetService",
-	HandlerType: (*GreetServiceServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Greet",
-			Handler:    _GreetService_Greet_Handler,
-		},
-	},
+var CalculatorService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "greetpb.CalculatorService",
+	HandlerType: (*CalculatorServiceServer)(nil),
+	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "GreetManyTimes",
-			Handler:       _GreetService_GreetManyTimes_Handler,
+			StreamName:    "Prime",
+			Handler:       _CalculatorService_Prime_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "LongGreet",
-			Handler:       _GreetService_LongGreet_Handler,
-			ClientStreams: true,
-		},
-		{
-			StreamName:    "GreetEveryone",
-			Handler:       _GreetService_GreetEveryone_Handler,
-			ServerStreams: true,
+			StreamName:    "Avg",
+			Handler:       _CalculatorService_Avg_Handler,
 			ClientStreams: true,
 		},
 	},

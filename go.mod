@@ -1,4 +1,4 @@
-module com.grpc.tleu
+module com.grpc.nurs
 
 go 1.16
 
