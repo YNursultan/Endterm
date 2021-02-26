@@ -4,10 +4,10 @@ services:
   client:
     build: greet/greet_client
     restart: always
-    ports:
-    - 50051:50051
+    depends_on:
+      - server
   server:
     build: greet/greet_server
     restart: always
     ports:
-    - 50051:50051
+      - 50051:50051

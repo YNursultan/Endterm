@@ -66,7 +66,7 @@ func (s *Server) Avg(stream greetpb.CalculatorService_AvgServer) error {
 }
 
 func main() {
-	l, err := net.Listen("tcp", "0.0.0.0:50051")
+	l, err := net.Listen("tcp", ":50051")
 	if err != nil {
 		log.Fatalf("Failed to listen:%v", err)
 	}
